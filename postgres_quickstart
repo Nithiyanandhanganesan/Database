@@ -1,0 +1,59 @@
+Postgres mac installation:
+==============================
+
+brew install postgresql
+
+Initialize:
+initdb /usr/local/var/postgres
+
+Start:
+pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+
+Stop:
+pg_ctl -D /usr/local/var/postgres stop -s -m fast
+
+Login to postgres command line :
+----------------------------------
+psql wrsdata
+set search_path to wrsdata;
+drop table if exists ds_taxonomy_bkp cascade;
+alter table if exists ds_taxonomy rename to ds_taxonomy_bkp;
+CREATE TABLE wrsdata.ds_taxonomy
+(
+    ds_src character varying(250) COLLATE pg_catalog."default",
+    datasource_id integer,
+    ds_entity character varying(250) COLLATE pg_catalog."default",
+    raw_atr character varying(250) COLLATE pg_catalog."default",
+    taxon_atr character varying(250) COLLATE pg_catalog."default",
+    taxon_type character varying(250) COLLATE pg_catalog."default",
+    taxon_cd character varying(250) COLLATE pg_catalog."default",
+    is_null boolean,
+    taxon_maj_ver smallint,
+    taxon_min_ver smallint,
+    behavior_map character varying(20) COLLATE pg_catalog."default",
+    is_global boolean,
+    atr_status boolean,
+    start_dt date,
+    end_dt date,
+    info_sec_class character varying(20) COLLATE pg_catalog."default",
+    is_masked boolean,
+    is_encrypted boolean,
+    is_prod boolean
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE wrsdata.ds_taxonomy
+    OWNER to streamsets;
+
+truncate ds_taxonomy;
+COPY ds_taxonomy FROM '/Users/nwe.nganesan/Desktop/prod_taxonomy.csv' delimiter ',' csv HEADER;
+
+
+drop table if exists event_definitions_bkp cascade;
+alter table if exists event_definitions rename to event_definitions_bkp;
+create table wrsdata.event_definitions as table event_definitions;
+truncate event_definitions;
+COPY ds_taxonomy FROM '/Users/nwe.nganesan/Desktop/prod_events.csv' delimiter ',' csv HEADER;
